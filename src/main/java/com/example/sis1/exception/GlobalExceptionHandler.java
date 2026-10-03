@@ -37,7 +37,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrityViolation(DataIntegrityViolationException ex,
-                                                                   HttpServletRequest request) {
+            HttpServletRequest request) {
         ApiError error = buildBaseError(HttpStatus.CONFLICT,
                 "The request conflicts with the current state of the resource", request.getRequestURI());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
@@ -45,7 +45,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiError> handleConstraintViolation(ConstraintViolationException ex,
-                                                                HttpServletRequest request) {
+            HttpServletRequest request) {
         List<ApiError.FieldValidationError> fieldErrors = ex.getConstraintViolations().stream()
                 .map(v -> ApiError.FieldValidationError.builder()
                         .field(v.getPropertyPath().toString())
@@ -60,7 +60,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex,
-                                                         HttpServletRequest request) {
+            HttpServletRequest request) {
         String message = String.format("Parameter '%s' should be of type %s", ex.getName(),
                 ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown");
         ApiError error = buildBaseError(HttpStatus.BAD_REQUEST, message, request.getRequestURI());
@@ -80,12 +80,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.internalServerError().body(error);
     }
 
-
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-                                                                    HttpHeaders headers,
-                                                                    HttpStatusCode status,
-                                                                    WebRequest request) {
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
         List<ApiError.FieldValidationError> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
                 .map(this::toFieldError)
                 .collect(Collectors.toList());
@@ -104,9 +103,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
-                                                                    HttpHeaders headers,
-                                                                    HttpStatusCode status,
-                                                                    WebRequest request) {
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
         ApiError error = ApiError.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
@@ -118,7 +117,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
-    // ---- helpers ------------------------------------------------------------------
+    // helpers
 
     private ApiError.FieldValidationError toFieldError(FieldError fe) {
         return ApiError.FieldValidationError.builder()
