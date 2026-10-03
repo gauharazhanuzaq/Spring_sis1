@@ -20,28 +20,21 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Central place that turns every exception the API can throw into the same
- * ApiError JSON shape, with the HTTP status code that matches the failure.
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    // ---- 404 : entity not found -------------------------------------------------
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
         ApiError error = buildBaseError(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-    // ---- 409 : business-rule conflict (e.g. duplicate title) --------------------
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<ApiError> handleConflict(ResourceConflictException ex, HttpServletRequest request) {
         ApiError error = buildBaseError(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
-    // ---- 409 : DB-level unique constraint violation (race-condition fallback) ---
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrityViolation(DataIntegrityViolationException ex,
                                                                    HttpServletRequest request) {
@@ -50,7 +43,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
-    // ---- 400 : @RequestParam / @PathVariable constraint violations --------------
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiError> handleConstraintViolation(ConstraintViolationException ex,
                                                                 HttpServletRequest request) {
@@ -66,7 +58,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
-    // ---- 400 : wrong path-variable type, e.g. GET /api/tasks/abc ----------------
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex,
                                                          HttpServletRequest request) {
@@ -76,14 +67,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
-    // ---- 400 : generic illegal argument raised by service code -------------------
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
         ApiError error = buildBaseError(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI());
         return ResponseEntity.badRequest().body(error);
     }
 
-    // ---- 500 : anything unmapped, last line of defence ---------------------------
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneric(Exception ex, HttpServletRequest request) {
         ApiError error = buildBaseError(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -91,7 +80,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.internalServerError().body(error);
     }
 
-    // ---- overrides for framework-level exceptions, kept in the same ApiError shape ----
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
